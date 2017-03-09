@@ -1671,3 +1671,15 @@ class UNIX_TIMESTAMP implements iFilterFunction {
 		return 'UNIX_TIMESTAMP(' . $ts . ')';
 	}
 }
+
+class UNHEX implements iFilterFunction {
+	private $hexString;
+
+	public function __construct($hexString = null) {
+		$this->hexString = $hexString;
+	}
+
+	public function codeSQL($DB, $column_name) {
+		return 'VALUES(' . $this->hexString . ')';
+	}
+}
