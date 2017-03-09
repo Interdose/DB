@@ -8,7 +8,7 @@ if (!class_exists('Interdose\DB'))  {
 /**
  * Interdose DB MySQL
  *
- * This package takes the basic PDO functionality in PHP and enhances it with some additional features, e.g. caching and LINQ style database queries.
+ * Basic PDO functionality enhanced it with some additional features, e.g. caching and LINQ inspired database queries.
  *
  * @author Dominik Deobald
  * @version 1.3.1
