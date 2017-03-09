@@ -1680,6 +1680,6 @@ class UNHEX implements iFilterFunction {
 	}
 
 	public function codeSQL($DB, $column_name) {
-		return 'VALUES(' . $this->hexString . ')';
+		return 'UNHEX(' . $this->hexString . ')';
 	}
 }
