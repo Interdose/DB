@@ -11,10 +11,10 @@ if (!class_exists('Interdose\DB'))  {
  * Basic PDO functionality enhanced it with some additional features, e.g. caching and LINQ inspired database queries.
  *
  * @author Dominik Deobald
- * @version 1.3.1
+ * @version 1.5.0-pre
  * @package Interdose\DB
- * @date 2014-09-03 08:52
- * @copyright Copyright (c) 2012-2014, Dominik Deobald / Interdose Ltd. & Co KG
+ * @date 2017-03-09 15:38
+ * @copyright Copyright (c) 2012-2017, Dominik Deobald / Interdose Ltd. & Co KG
  */
 
 /**
@@ -1681,5 +1681,32 @@ class UNHEX implements iFilterFunction {
 
 	public function codeSQL($DB, $column_name) {
 		return 'UNHEX(' . $this->hexString . ')';
+	}
+}
+
+class UTC_DATE implements iFilterFunction {
+	public function __construct() {
+	}
+
+	public function codeSQL($DB, $column_name) {
+		return 'UTC_DATE()';
+	}
+}
+
+class UTC_TIME implements iFilterFunction {
+	public function __construct() {
+	}
+
+	public function codeSQL($DB, $column_name) {
+		return 'UTC_TIME()';
+	}
+}
+
+class UTC_TIMESTAMP implements iFilterFunction {
+	public function __construct() {
+	}
+
+	public function codeSQL($DB, $column_name) {
+		return 'UTC_TIMESTAMP()';
 	}
 }
