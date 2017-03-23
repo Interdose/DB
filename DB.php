@@ -37,6 +37,7 @@ class DB {
 	public static $Cache = null;
 
 	private $batch;
+	private static $globalbatch;
 
 	public static $stats = array('db-connect' => array(), 'db-read' => 0, 'db-write' => 0, 'cache-read' => 0, 'cache-write' => 0, 'cache-hit' => 0, 'db-time' => 0, 'cache-time' => 0, 'queries' => array());
 	public static $logLevel = 0;
@@ -146,8 +147,17 @@ class DB {
 		$this->batch = null;
 	}
 
+	public static function startGlobalBatch($batch) {
+		self::$globalbatch = $batch;
+	}
+
+	public static function endGlobalBatch() {
+		self::$globalbatch = null;
+	}
+
 	public function query($sql, $cache_handle = null, $cacheable = 120) {
 		if ($cache_handle === null && $this->batch !== null) $cache_handle = $this->batch . '|' . sha1($sql);
+		if ($cache_handle === null && self::$globalbatch !== null) $cache_handle = self::$globalbatch . '|' . sha1($sql);
 		return new DB_Resultset($this, $sql, $cache_handle, $cacheable);
 	}
 
