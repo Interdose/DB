@@ -1672,6 +1672,23 @@ class UNIX_TIMESTAMP implements iFilterFunction {
 	}
 }
 
+class TO_DAYS implements iFilterFunction {
+	private $ts;
+
+	public function __construct($ts = null) {
+		$this->ts = $ts;
+	}
+
+	public function codeSQL($DB, $column_name) {
+		if (empty($this->ts)) {
+			$ts = 'NOW()';
+		} else {
+			$ts = $DB->prep($this->ts, '', '');
+		}
+		return 'TO_DAYS(' . $ts . ')';
+	}
+}
+
 class UNHEX implements iFilterFunction {
 	private $hexString;
 
