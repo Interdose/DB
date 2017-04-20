@@ -247,6 +247,8 @@ class DB {
 				$inval[$k] = $this->prep($v, $if_null, $if_empty, $param_type);
 			}
 			return $inval;
+		} elseif ($inval instanceOf \Interdose\DB\iFilterFunction) {
+			return $inval->codeSQL($this);
 		} elseif (is_null($inval)) {
 			return $if_null;
 		} elseif (is_int($inval) || $inval == '0') {
@@ -278,7 +280,7 @@ class DB {
 			return ' IS ' . $mode . ' NULL ';
 		} elseif (is_array($value)) {
 			return ' ' . $mode . ' IN (' . implode(',', $this->prep($value, "''", "''", $param_type)) . ') ';
-		} else {
+        } else {
 			$mode = ($mode == '')?' = ':' <> ';
 			return $mode . $this->prep($value, "''", "''", $param_type) . ' ';
 		}
@@ -1701,13 +1703,20 @@ class TO_DAYS implements iFilterFunction {
 
 class UNHEX implements iFilterFunction {
 	private $hexString;
+	private $columnParam;
 
-	public function __construct($hexString = null) {
+	public function __construct($hexString = null, $columnParam = false) {
 		$this->hexString = $hexString;
+		$this->columnParam = $columnParam;
 	}
 
 	public function codeSQL($DB, $column_name) {
-		return 'UNHEX(' . $this->hexString . ')';
+		if ($this->columnParam) {
+			$hexString = '`' . $this->hexString . '`';
+		} else {
+			$hexString = $DB->prep($this->hexString, '', '');
+		}
+		return 'UNHEX(' . $hexString . ')';
 	}
 }
 
