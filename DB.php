@@ -11,9 +11,9 @@ if (!class_exists('Interdose\DB'))  {
  * This package takes the basic PDO functionality in PHP and enhances it with some additional features, e.g. caching and LINQ style database queries.
  *
  * @author Dominik Deobald
- * @version 1.3.1
+ * @version 1.3.2
  * @package Interdose\DB
- * @date 2014-09-03 08:52
+ * @date 2016-10-05 13:25
  * @copyright Copyright (c) 2012-2014, Dominik Deobald / Interdose Ltd. & Co KG
  */
 
@@ -146,7 +146,16 @@ class DB {
 		$this->batch = null;
 	}
 
-	public function query($sql, $cache_handle = null, $cacheable = 120) {
+	public function query($sql, $placeholders, $cache_handle = null, $cacheable = 120) {
+        if (!is_array($placeholders)) {
+            $cacheable = $cache_handle;
+            $cache_handle = $placeholders;
+            $placeholders = array();
+        }
+        foreach ($placeholders as $k => $v) {
+            $sql = str_replace('{{raw:' . $k . '}}', $v, $sql);
+            $sql = str_replace('{{:' . $k . '}}', $this->prep($v), $sql);
+        }
 		if ($cache_handle === null && $this->batch !== null) $cache_handle = $this->batch . '|' . sha1($sql);
 		return new DB_Resultset($this, $sql, $cache_handle, $cacheable);
 	}
