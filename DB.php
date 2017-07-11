@@ -155,7 +155,16 @@ class DB {
 		self::$globalbatch = null;
 	}
 
-	public function query($sql, $cache_handle = null, $cacheable = 120) {
+	public function query($sql, $placeholders, $cache_handle = null, $cacheable = 120) {
+        if (!is_array($placeholders)) {
+            $cacheable = $cache_handle;
+            $cache_handle = $placeholders;
+            $placeholders = array();
+        }
+        foreach ($placeholders as $k => $v) {
+            $sql = str_replace('{{raw:' . $k . '}}', $v, $sql);
+            $sql = str_replace('{{:' . $k . '}}', $this->prep($v), $sql);
+        }
 		if ($cache_handle === null && $this->batch !== null) $cache_handle = $this->batch . '|' . sha1($sql);
 		if ($cache_handle === null && self::$globalbatch !== null) $cache_handle = self::$globalbatch . '|' . sha1($sql);
 		return new DB_Resultset($this, $sql, $cache_handle, $cacheable);
