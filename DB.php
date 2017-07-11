@@ -8,13 +8,13 @@ if (!class_exists('Interdose\DB'))  {
 /**
  * Interdose DB MySQL
  *
- * This package takes the basic PDO functionality in PHP and enhances it with some additional features, e.g. caching and LINQ style database queries.
+ * Basic PDO functionality enhanced it with some additional features, e.g. caching and LINQ inspired database queries.
  *
  * @author Dominik Deobald
- * @version 1.3.1
+ * @version 1.5.0-pre
  * @package Interdose\DB
- * @date 2014-09-03 08:52
- * @copyright Copyright (c) 2012-2014, Dominik Deobald / Interdose Ltd. & Co KG
+ * @date 2017-03-09 15:38
+ * @copyright Copyright (c) 2012-2017, Dominik Deobald / Interdose Ltd. & Co KG
  */
 
 /**
@@ -37,6 +37,7 @@ class DB {
 	public static $Cache = null;
 
 	private $batch;
+	private static $globalbatch;
 
 	public static $stats = array('db-connect' => array(), 'db-read' => 0, 'db-write' => 0, 'cache-read' => 0, 'cache-write' => 0, 'cache-hit' => 0, 'db-time' => 0, 'cache-time' => 0, 'queries' => array());
 	public static $logLevel = 0;
@@ -146,8 +147,26 @@ class DB {
 		$this->batch = null;
 	}
 
-	public function query($sql, $cache_handle = null, $cacheable = 120) {
+	public static function startGlobalBatch($batch) {
+		self::$globalbatch = $batch;
+	}
+
+	public static function endGlobalBatch() {
+		self::$globalbatch = null;
+	}
+
+	public function query($sql, $placeholders, $cache_handle = null, $cacheable = 120) {
+        if (!is_array($placeholders)) {
+            $cacheable = $cache_handle;
+            $cache_handle = $placeholders;
+            $placeholders = array();
+        }
+        foreach ($placeholders as $k => $v) {
+            $sql = str_replace('{{raw:' . $k . '}}', $v, $sql);
+            $sql = str_replace('{{:' . $k . '}}', $this->prep($v), $sql);
+        }
 		if ($cache_handle === null && $this->batch !== null) $cache_handle = $this->batch . '|' . sha1($sql);
+		if ($cache_handle === null && self::$globalbatch !== null) $cache_handle = self::$globalbatch . '|' . sha1($sql);
 		return new DB_Resultset($this, $sql, $cache_handle, $cacheable);
 	}
 
@@ -237,6 +256,8 @@ class DB {
 				$inval[$k] = $this->prep($v, $if_null, $if_empty, $param_type);
 			}
 			return $inval;
+		} elseif ($inval instanceOf \Interdose\DB\iFilterFunction) {
+			return $inval->codeSQL($this);
 		} elseif (is_null($inval)) {
 			return $if_null;
 		} elseif (is_int($inval) || $inval == '0') {
@@ -268,7 +289,7 @@ class DB {
 			return ' IS ' . $mode . ' NULL ';
 		} elseif (is_array($value)) {
 			return ' ' . $mode . ' IN (' . implode(',', $this->prep($value, "''", "''", $param_type)) . ') ';
-		} else {
+        } else {
 			$mode = ($mode == '')?' = ':' <> ';
 			return $mode . $this->prep($value, "''", "''", $param_type) . ' ';
 		}
@@ -1669,5 +1690,68 @@ class UNIX_TIMESTAMP implements iFilterFunction {
 	public function codeSQL($DB, $column_name) {
 		$ts = $DB->prep($this->ts, '', '');
 		return 'UNIX_TIMESTAMP(' . $ts . ')';
+	}
+}
+
+class TO_DAYS implements iFilterFunction {
+	private $ts;
+
+	public function __construct($ts = null) {
+		$this->ts = $ts;
+	}
+
+	public function codeSQL($DB, $column_name) {
+		if (empty($this->ts)) {
+			$ts = 'NOW()';
+		} else {
+			$ts = $DB->prep($this->ts, '', '');
+		}
+		return 'TO_DAYS(' . $ts . ')';
+	}
+}
+
+class UNHEX implements iFilterFunction {
+	private $hexString;
+	private $columnParam;
+
+	public function __construct($hexString = null, $columnParam = false) {
+		$this->hexString = $hexString;
+		$this->columnParam = $columnParam;
+	}
+
+	public function codeSQL($DB, $column_name) {
+		if ($this->columnParam) {
+			$hexString = '`' . $this->hexString . '`';
+		} else {
+			$hexString = $DB->prep($this->hexString, '', '');
+		}
+		return 'UNHEX(' . $hexString . ')';
+	}
+}
+
+class UTC_DATE implements iFilterFunction {
+	public function __construct() {
+	}
+
+	public function codeSQL($DB, $column_name) {
+		return 'UTC_DATE()';
+	}
+}
+
+class UTC_TIME implements iFilterFunction {
+	public function __construct() {
+	}
+
+	public function codeSQL($DB, $column_name) {
+		return 'UTC_TIME()';
+	}
+}
+
+class UTC_TIMESTAMP implements iFilterFunction {
+	public function __construct() {
+	}
+
+	public function codeSQL($DB, $column_name) {
+		return 'UTC_TIMESTAMP()';
 	}
 }
