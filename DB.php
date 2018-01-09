@@ -1764,3 +1764,12 @@ class UTC_TIMESTAMP implements iFilterFunction {
 		return 'UTC_TIMESTAMP()';
 	}
 }
+
+class UUID implements iFilterFunction {
+	public function __construct() {
+	}
+
+	public function codeSQL($DB, $column_name) {
+		return 'UUID()';
+	}
+}
