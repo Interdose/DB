@@ -1554,6 +1554,10 @@ class DB_Resultset {
 		return 1;
 	}
 
+	public function getSQL() {
+		return $this->sql;
+	}
+
 	public function bindColumn($column, &$param, $type) {
 		$this->initRS();
 
