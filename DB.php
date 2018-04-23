@@ -358,8 +358,15 @@ class DB {
 					);
 
 					$this->connType = 'mysql';
-					self::$DBs[$this->connName]->exec('SET CHARACTER SET utf8');
-					self::$DBs[$this->connName]->exec("SET NAMES utf8");
+					if (preg_match("~charset=([a-u0-9]+)(;|$)~i", $this->ConnSettings['dsn'], $matches)){
+						// use custom character set if provided in DSN
+						self::$DBs[$this->connName]->exec('SET CHARACTER SET ' . $matches[1]);
+						self::$DBs[$this->connName]->exec('SET NAMES ' . $matches[1]);
+					} else {
+						// default character set
+						self::$DBs[$this->connName]->exec('SET CHARACTER SET utf8');
+						self::$DBs[$this->connName]->exec('SET NAMES utf8');
+					}
 					self::$DBs[$this->connName]->exec("SET time_zone = '+0:00'");
 				} elseif (substr($this->ConnSettings['dsn'], 0, 7) == 'sqlsrv:') {
 					self::$DBs[$this->connName] = new PDO(
