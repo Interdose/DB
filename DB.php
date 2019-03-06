@@ -4,7 +4,6 @@ namespace Interdose;
 use PDO;
 
 if (!class_exists('Interdose\DB'))  {
-
 /**
  * Interdose DB MySQL
  *
@@ -73,16 +72,26 @@ class DB {
 		}
 	}
 
+    private function applyPlaceholders($sql, $placeholders = array()) {
+        foreach ($placeholders as $k => $v) {
+            $sql = str_replace('{{json:' . $k . '}}', $this->prep(json_encode($v)), $sql);
+            if (!is_scalar($v)) {
+                $v = null;
+            }
+            $sql = str_replace('{{raw:' . $k . '}}', $v, $sql);
+            $sql = str_replace('{{:' . $k . '}}', $this->prep($v), $sql);
+        }
+
+        return $sql;
+    }
+
 	public function exec($sql, $placeholders = array(), $cache_handle = null) {
 		if (!is_array($placeholders)) {
             $cache_handle = $placeholders;
             $placeholders = array();
         }
-        foreach ($placeholders as $k => $v) {
-            $sql = str_replace('{{raw:' . $k . '}}', $v, $sql);
-            $sql = str_replace('{{json:' . $k . '}}', $this->prep(json_encode($v)), $sql);
-            $sql = str_replace('{{:' . $k . '}}', $this->prep($v), $sql);
-        }
+
+        $sql = $this->applyPlaceholders($sql, $placeholders);
 
 		$DB = $this->connectDB();
 
@@ -171,11 +180,9 @@ class DB {
             $cache_handle = $placeholders;
             $placeholders = array();
         }
-        foreach ($placeholders as $k => $v) {
-            $sql = str_replace('{{raw:' . $k . '}}', $v, $sql);
-            $sql = str_replace('{{json:' . $k . '}}', $this->prep(json_encode($v)), $sql);
-            $sql = str_replace('{{:' . $k . '}}', $this->prep($v), $sql);
-        }
+
+        $sql = $this->applyPlaceholders($sql, $placeholders);
+
 		if ($cache_handle === null && $this->batch !== null) $cache_handle = $this->batch . '|' . sha1($sql);
 		if ($cache_handle === null && self::$globalbatch !== null) $cache_handle = self::$globalbatch . '|' . sha1($sql);
 		return new DB_Resultset($this, $sql, $cache_handle, $cacheable);
