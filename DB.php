@@ -10,10 +10,11 @@ if (!class_exists('Interdose\DB'))  {
  * Basic PDO functionality enhanced it with some additional features, e.g. caching and LINQ inspired database queries.
  *
  * @author Dominik Deobald
- * @version 1.5.0-pre
+ * @version 1.5.1
  * @package Interdose\DB
- * @date 2017-03-09 15:38
+ * @date 2020-08-26 13:37
  * @copyright Copyright (c) 2012-2017, Dominik Deobald / Interdose Ltd. & Co KG
+ * @copyright Copyright (c) 2017-2020, Dominik Deobald
  */
 
 /**
@@ -53,12 +54,12 @@ class DB {
 		if (!isset($_DBCONFIG[$this->connName]) && isset($GLOBALS['_CONFIG'][$this->connName]['database']))
 			$_DBCONFIG[$this->connName] = &$GLOBALS['_CONFIG'][$this->connName]['database'];
 
+		if ($this->connName == 'user'    && !isset($_DBCONFIG['user']   )) $this->connName = 'session';
+		if ($this->connName == 'session' && !isset($_DBCONFIG['session'])) $this->connName = 'main';
+
 		if (!isset($_DBCONFIG[$this->connName])) {
 			throw new \Exception('Database configuration missing');
 		}
-
-		if ($this->connName == 'user'    && !isset($_DBCONFIG['user']   )) $this->connName = 'session';
-		if ($this->connName == 'session' && !isset($_DBCONFIG['session'])) $this->connName = 'main';
 
 		$this->ConnSettings = &$_DBCONFIG[$this->connName];
 
@@ -706,7 +707,11 @@ abstract class DB_Query {
 
 				if (DB::is_assoc($w)) {
 					foreach ($w as $k => $v) {
-						$this->_addWhere($k, '=', $v);
+						if (is_numeric($k)) {
+							$this->where($v);
+						} else {
+							$this->_addWhere($k, '=', $v);
+						}
 					}
 				} else if (is_array($w)) {
 					foreach ($w as $k => $v) {
