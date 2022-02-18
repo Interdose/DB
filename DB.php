@@ -10,9 +10,9 @@ if (!class_exists('Interdose\DB'))  {
  * Basic PDO functionality enhanced it with some additional features, e.g. caching and LINQ inspired database queries.
  *
  * @author Dominik Deobald
- * @version 1.5.2
+ * @version 1.5.3
  * @package Interdose\DB
- * @date 2022-02-18 10:11:11
+ * @date 2022-02-18 10:19
  * @copyright Copyright (c) 2012-2017, Dominik Deobald / Interdose Ltd. & Co KG
  * @copyright Copyright (c) 2017-2022, Dominik Deobald
  */
@@ -331,11 +331,11 @@ class DB {
 	}
 
 	public function sqliteCreateAggregate() {
-		throw new Exception('Not Implemented', 501);
+		throw new \Exception('Not Implemented', 501);
 	}
 
 	public function sqliteCreateFunction() {
-		throw new Exception('Not Implemented', 501);
+		throw new \Exception('Not Implemented', 501);
 	}
 
 	protected function connectDB() {
@@ -505,15 +505,15 @@ class DB_MySQL_Remote {
 	}
 
 	public function beginTransaction() {
-		throw new Exception('Not Implemented', 501);
+		throw new \Exception('Not Implemented', 501);
 	}
 
 	public function commit() {
-		throw new Exception('Not Implemented', 501);
+		throw new \Exception('Not Implemented', 501);
 	}
 
 	public function getAttribute() {
-		throw new Exception('Not Implemented', 501);
+		throw new \Exception('Not Implemented', 501);
 	}
 
 	public function lastInsertId() {
@@ -525,11 +525,11 @@ class DB_MySQL_Remote {
 	}
 
 	public function rollBack() {
-		throw new Exception('Not Implemented', 501);
+		throw new \Exception('Not Implemented', 501);
 	}
 
 	public function setAttribute() {
-		throw new Exception('Not Implemented', 501);
+		throw new \Exception('Not Implemented', 501);
 	}
 
 }
@@ -786,7 +786,7 @@ abstract class DB_Query {
 				break;
 
 			default:
-				throw new Exception('Limit only takes one or two parameters.');
+				throw new \Exception('Limit only takes one or two parameters.');
 		}
 
 		return $this;
@@ -870,7 +870,7 @@ abstract class DB_Query {
 		}
 	}
 
-	protected function buildTableList($reqired = 'FROM') {
+	protected function buildTableList($required = 'FROM') {
 		$froms = array();
 		$joins = array();
 		$comma = '';
@@ -890,7 +890,7 @@ abstract class DB_Query {
 			}
 		}
 
-		if (empty($froms)) throw new exception('Need to specify "' . $required . '"!');
+		if (empty($froms)) throw new \Exception('Need to specify "' . $required . '"!');
 
 		return implode(',', $froms) . ' ' . implode(' ', $joins);
 	}
@@ -1158,7 +1158,7 @@ class DB_Query_Insert extends DB_Query {
 	}
 
 	public function into($table) {
-		if (!empty($this->tables)) throw new Exception ('Only one table allowed for INSERT.');
+		if (!empty($this->tables)) throw new \Exception ('Only one table allowed for INSERT.');
 		parent::join($table, 'T');
 
 		return $this;
@@ -1193,7 +1193,7 @@ class DB_Query_Insert extends DB_Query {
 		$data = $this->prepareRows(false);
 		if ($data == false) return false; // Nothing to do.
 
-		if (empty($this->tables['T']['table'])) throw new exception('Need to specify "FROM"!');
+		if (empty($this->tables['T']['table'])) throw new \Exception('Need to specify "FROM"!');
 
 		$sql[] = $this->insert_mode . ' ' . implode(' ', $flags) . ' INTO ' . $this->quoteObj($this->tables['T']['table']) . ' (';
 		$sql[] = implode(',', $data['columns']);
@@ -1236,12 +1236,12 @@ class DB_Query_Update extends DB_Query {
 	}
 
 	function values($data) {
-		if (count($this->data)) throw new Exception ('Can only use one ROW for UPDATE.');
+		if (count($this->data)) throw new \Exception ('Can only use one ROW for UPDATE.');
 		return parent::values(array($data));
 	}
 
 	public function from($table, $alias = NULL) {
-		throw new Exception ('FROM not allowed for UPDATE. Use table() instead.');
+		throw new \Exception ('FROM not allowed for UPDATE. Use table() instead.');
 	}
 
 	protected function buildQuery() {
@@ -1313,36 +1313,36 @@ class DB_Query_Delete extends DB_Query {
 	}
 
 	public function from($table, $alias = NULL) {
-		if (!empty($this->tables)) throw new Exception ('Only one table allowed for DELETE.');
+		if (!empty($this->tables)) throw new \Exception ('Only one table allowed for DELETE.');
 		parent::join($table, 'T');
 
 		return $this;
 	}
 
 	public function columns($cols) {
-		throw new Exception ('COLUMNS not allowed for DELETE.');
+		throw new \Exception ('COLUMNS not allowed for DELETE.');
 	}
 
 	public function join($table, $alias, $id_column = NULL, $relation_id_column = NULL, $join_type = 'INNER') {
-		throw new Exception ('JOIN not allowed for DELETE.');
+		throw new \Exception ('JOIN not allowed for DELETE.');
 	}
 
 	public function values($data) {
-		throw new Exception ('VALUES not allowed for SELECT.');
+		throw new \Exception ('VALUES not allowed for SELECT.');
 	}
 
 	public function row($data) {
-		throw new Exception ('ROW not allowed for SELECT.');
+		throw new \Exception ('ROW not allowed for SELECT.');
 	}
 
 	public function filters($column, $rules = NULL) {
-		throw new Exception ('FILTERS not allowed for SELECT.');
+		throw new \Exception ('FILTERS not allowed for SELECT.');
 	}
 
 	protected function buildQuery() {
 		$sql = array();
 
-		if (empty($this->tables['T']['table'])) throw new exception('Need to specify "FROM"!');
+		if (empty($this->tables['T']['table'])) throw new \Exception('Need to specify "FROM"!');
 
 		$sql[] = 'DELETE FROM';
 		$sql[] = $this->tables['T']['table'];
@@ -1422,15 +1422,15 @@ class DB_Resultset_Cached {
 	}
 
 	public function bindParam($parameter, $variable, $data_type = null, $length = null, $driver_options = null) {
-		throw new Exception('Cached Result cannot be prepared statement.');
+		throw new \Exception('Cached Result cannot be prepared statement.');
 	}
 
 	public function bindValue($parameter, $value, $data_type) {
-		throw new Exception('Cached Result cannot be prepared statement.');
+		throw new \Exception('Cached Result cannot be prepared statement.');
 	}
 
 	public function execute($parameters = array()) {
-		throw new Exception('Cached Result cannot be prepared statement.');
+		throw new \Exception('Cached Result cannot be prepared statement.');
 	}
 
 	public function closeCursor() {
@@ -1462,7 +1462,7 @@ class DB_Resultset_Cached {
 
 			default:
 				if ($cursor_orientation > 10) die('ARE YOU TRYING TO CACHE? WRONG PLACE FOR PARAMETERS!');
-				throw new Exception('Selected cursor orientation not implemented.', 501);
+				throw new \Exception('Selected cursor orientation not implemented.', 501);
 
 		}
 
@@ -1492,7 +1492,7 @@ class DB_Resultset_Cached {
 				return true;
 				break;
 
-			default: throw new Exception('Selected fetch style not implemented.', 501);
+			default: throw new \Exception('Selected fetch style not implemented.', 501);
 		}
 	}
 
@@ -1500,16 +1500,16 @@ class DB_Resultset_Cached {
 		if ($fetch_style = PDO::FETCH_ASSOC) {
 			return $this->data;
 		} else {
-			throw new Exception('Not Implemented', 501);
+			throw new \Exception('Not Implemented', 501);
 		}
 	}
 
 	public function fetchColumn($column_index = 0) {
-		throw new Exception('Not Implemented', 501);
+		throw new \Exception('Not Implemented', 501);
 	}
 
 	public function fetchObject($class_name = 'stdClass', $ctor_args = array()) {
-		throw new Exception('Not Implemented', 501);
+		throw new \Exception('Not Implemented', 501);
 	}
 
 	public function getAttribute($attribute) {
@@ -1521,7 +1521,7 @@ class DB_Resultset_Cached {
 	}
 
 	public function nextRowset() {
-		throw new Exception('Not Implemented', 501);
+		throw new \Exception('Not Implemented', 501);
 	}
 
 	public function rowCount() {
