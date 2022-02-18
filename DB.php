@@ -10,11 +10,11 @@ if (!class_exists('Interdose\DB'))  {
  * Basic PDO functionality enhanced it with some additional features, e.g. caching and LINQ inspired database queries.
  *
  * @author Dominik Deobald
- * @version 1.5.1
+ * @version 1.5.2
  * @package Interdose\DB
- * @date 2020-08-26 13:37
+ * @date 2022-02-18 10:11:11
  * @copyright Copyright (c) 2012-2017, Dominik Deobald / Interdose Ltd. & Co KG
- * @copyright Copyright (c) 2017-2020, Dominik Deobald
+ * @copyright Copyright (c) 2017-2022, Dominik Deobald
  */
 
 /**
@@ -279,6 +279,10 @@ class DB {
 			return $inval->codeSQL($this);
 		} elseif (is_null($inval)) {
 			return $if_null;
+		} elseif ($inval === true) {
+			return 'TRUE';
+		} elseif ($inval === false) {
+			return 'FALSE';
 		} elseif (is_int($inval) || $inval == '0') {
 			return $inval;
 		} elseif (empty($inval)) {
