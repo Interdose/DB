@@ -10,9 +10,9 @@ if (!class_exists('Interdose\DB'))  {
  * Basic PDO functionality enhanced it with some additional features, e.g. caching and LINQ inspired database queries.
  *
  * @author Dominik Deobald
- * @version 1.5.3
+ * @version 1.6.0
  * @package Interdose\DB
- * @date 2022-02-18 10:19
+ * @date 2022-03-01 14:17:58
  * @copyright Copyright (c) 2012-2017, Dominik Deobald / Interdose Ltd. & Co KG
  * @copyright Copyright (c) 2017-2022, Dominik Deobald
  */
@@ -376,8 +376,8 @@ class DB {
 						self::$DBs[$this->connName]->exec('SET NAMES ' . $matches[1]);
 					} else {
 						// default character set
-						self::$DBs[$this->connName]->exec('SET CHARACTER SET utf8');
-						self::$DBs[$this->connName]->exec('SET NAMES utf8');
+						self::$DBs[$this->connName]->exec('SET CHARACTER SET utf8mb4');
+						self::$DBs[$this->connName]->exec('SET NAMES utf8mb4');
 					}
 					self::$DBs[$this->connName]->exec("SET time_zone = '+0:00'");
 				} elseif (substr($this->ConnSettings['dsn'], 0, 7) == 'sqlsrv:') {
@@ -495,7 +495,7 @@ class DB_MySQL_Remote {
 		$h = new \Interdose_HTTP_Request($url);
 		$h->post($sql);
 
-		if ($h->HTTP_Code != 200) throw new Exception('Remote DB Error: ' . $h->Result, $h->HTTP_Code);
+		if ($h->HTTP_Code != 200) throw new \Exception('Remote DB Error: ' . $h->Result, $h->HTTP_Code);
 
 		$res = json_decode($h->Result, true);
 
@@ -1702,7 +1702,7 @@ $GLOBALS['_DEBUG']['Ids_DB'] = &DB::$stats;
 namespace Interdose\DB;
 
 interface iFilterFunction {
-	public function codeSQL($DB, $column_name);
+	public function codeSQL($DB, $column_name = null);
 }
 
 class VALUES implements iFilterFunction {
@@ -1713,7 +1713,7 @@ class VALUES implements iFilterFunction {
 		$this->column = $column;
 	}
 
-	public function codeSQL($DB, $column_name) {
+	public function codeSQL($DB, $column_name = null) {
 		return 'VALUES(' . $this->column . ')';
 	}
 }
@@ -1725,7 +1725,7 @@ class UNIX_TIMESTAMP implements iFilterFunction {
 		$this->ts = $ts;
 	}
 
-	public function codeSQL($DB, $column_name) {
+	public function codeSQL($DB, $column_name = null) {
 		$ts = $DB->prep($this->ts, '', '');
 		return 'UNIX_TIMESTAMP(' . $ts . ')';
 	}
@@ -1738,7 +1738,7 @@ class TO_DAYS implements iFilterFunction {
 		$this->ts = $ts;
 	}
 
-	public function codeSQL($DB, $column_name) {
+	public function codeSQL($DB, $column_name = null) {
 		if (empty($this->ts)) {
 			$ts = 'NOW()';
 		} else {
@@ -1757,7 +1757,7 @@ class UNHEX implements iFilterFunction {
 		$this->columnParam = $columnParam;
 	}
 
-	public function codeSQL($DB, $column_name) {
+	public function codeSQL($DB, $column_name = null) {
 		if ($this->columnParam) {
 			$hexString = '`' . $this->hexString . '`';
 		} else {
@@ -1771,7 +1771,7 @@ class UTC_DATE implements iFilterFunction {
 	public function __construct() {
 	}
 
-	public function codeSQL($DB, $column_name) {
+	public function codeSQL($DB, $column_name = null) {
 		return 'UTC_DATE()';
 	}
 }
@@ -1780,7 +1780,7 @@ class UTC_TIME implements iFilterFunction {
 	public function __construct() {
 	}
 
-	public function codeSQL($DB, $column_name) {
+	public function codeSQL($DB, $column_name = null) {
 		return 'UTC_TIME()';
 	}
 }
@@ -1789,7 +1789,7 @@ class UTC_TIMESTAMP implements iFilterFunction {
 	public function __construct() {
 	}
 
-	public function codeSQL($DB, $column_name) {
+	public function codeSQL($DB, $column_name = null) {
 		return 'UTC_TIMESTAMP()';
 	}
 }
@@ -1798,7 +1798,7 @@ class UUID implements iFilterFunction {
 	public function __construct() {
 	}
 
-	public function codeSQL($DB, $column_name) {
+	public function codeSQL($DB, $column_name = null) {
 		return 'UUID()';
 	}
 }
