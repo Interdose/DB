@@ -10,9 +10,9 @@ if (!class_exists('Interdose\DB'))  {
  * Basic PDO functionality enhanced it with some additional features, e.g. caching and LINQ inspired database queries.
  *
  * @author Dominik Deobald
- * @version 1.6.0
+ * @version 1.6.1
  * @package Interdose\DB
- * @date 2022-03-01 14:17:58
+ * @date 2022-12-01 10:24:53
  * @copyright Copyright (c) 2012-2017, Dominik Deobald / Interdose Ltd. & Co KG
  * @copyright Copyright (c) 2017-2022, Dominik Deobald
  */
@@ -1773,6 +1773,15 @@ class UTC_DATE implements iFilterFunction {
 
 	public function codeSQL($DB, $column_name = null) {
 		return 'UTC_DATE()';
+	}
+}
+
+class NOW implements iFilterFunction {
+	public function __construct() {
+	}
+
+	public function codeSQL($DB, $column_name = null) {
+		return 'NOW()';
 	}
 }
 
