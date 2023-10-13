@@ -10,11 +10,11 @@ if (!class_exists('Interdose\DB'))  {
  * Basic PDO functionality enhanced it with some additional features, e.g. caching and LINQ inspired database queries.
  *
  * @author Dominik Deobald
- * @version 1.6.1
+ * @version 1.6.2
  * @package Interdose\DB
- * @date 2022-12-01 10:24:53
+ * @date 2023-10-13 14:56:39
  * @copyright Copyright (c) 2012-2017, Dominik Deobald / Interdose Ltd. & Co KG
- * @copyright Copyright (c) 2017-2022, Dominik Deobald
+ * @copyright Copyright (c) 2017-2023, Dominik Deobald
  */
 
 /**
@@ -269,6 +269,25 @@ class DB {
 		return $this->connectDB()->quote($str, $param_type);
 	}
 
+	public function escape_string($inval) {
+		if ($this->can_quote) {
+			$res = $this->connectDB()->quote($inval);
+			if ($res !== false) return $res;
+			$this->can_quote = false;
+		}
+		if (!$this->can_quote) {
+			switch ($this->connType) {
+				case 'sqlsrv':	return " N'" . self::ms_escape_string($inval) . "' ";
+
+				default:		if (function_exists('mysql_escape_string')) {
+									return " '" . mysql_escape_string($inval) . "' ";
+								} else {
+									return " '" . self::mysql_escape_string($inval) . "' ";
+								}
+			}
+		}
+	}
+
 	public function prep($inval, $if_null = 'null', $if_empty = "''", $param_type = PDO::PARAM_STR) {
 		if (is_array($inval)) {
 			foreach ($inval as $k => $v) {
@@ -283,27 +302,12 @@ class DB {
 			return 'TRUE';
 		} elseif ($inval === false) {
 			return 'FALSE';
-		} elseif (is_int($inval) || $inval == '0') {
+		} elseif (is_int($inval)) {
 			return $inval;
 		} elseif (empty($inval)) {
 			return $if_empty;
 		} else {
-			if ($this->can_quote) {
-				$res = $this->connectDB()->quote($inval);
-				if ($res !== false) return $res;
-				$this->can_quote = false;
-			}
-			if (!$this->can_quote) {
-				switch ($this->connType) {
-					case 'sqlsrv':	return " N'" . self::ms_escape_string($inval) . "' ";
-
-					default:		if (function_exists('mysql_escape_string')) {
-										return " '" . mysql_escape_string($inval) . "' ";
-									} else {
-										return " '" . self::mysql_escape_string($inval) . "' ";
-									}
-				}
-			}
+			return $this->escape_string($inval);
 		}
 	}
 
