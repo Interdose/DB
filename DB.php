@@ -10,11 +10,11 @@ if (!class_exists('Interdose\DB'))  {
  * Basic PDO functionality enhanced it with some additional features, e.g. caching and LINQ inspired database queries.
  *
  * @author Dominik Deobald
- * @version 1.6.2
+ * @version 1.6.2+adlytics
  * @package Interdose\DB
- * @date 2023-10-13 14:56:39
+ * @date 2024-05-15 14:11:46
  * @copyright Copyright (c) 2012-2017, Dominik Deobald / Interdose Ltd. & Co KG
- * @copyright Copyright (c) 2017-2023, Dominik Deobald
+ * @copyright Copyright (c) 2017-2024, Dominik Deobald
  */
 
 /**
@@ -35,6 +35,7 @@ class DB {
 	protected $can_quote;
 
 	public static $Cache = null;
+	public static $ENABLE_DANGEROUS_METHODS = false;
 
 	private $batch;
 	private static $globalbatch;
@@ -1186,6 +1187,17 @@ class DB_Query_Insert extends DB_Query {
 
 		foreach ($keys as $key) {
 			$this->duplicate_key_update[] = $key . ' = VALUES(' . $key . ')';
+		}
+
+		return $this;
+	}
+
+	public function on_duplicate_key_update($sql) { // Dangerous method. Nothing escaped here! Careful!
+		if (!DB::$ENABLE_DANGEROUS_METHODS) { return; }
+		if (!is_array($sql)) $sql = array($sql);
+
+		foreach ($sql as $key) {
+			$this->duplicate_key_update[] = $key;
 		}
 
 		return $this;
