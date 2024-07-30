@@ -10,9 +10,9 @@ if (!class_exists('Interdose\DB'))  {
  * Basic PDO functionality enhanced it with some additional features, e.g. caching and LINQ inspired database queries.
  *
  * @author Dominik Deobald
- * @version 1.6.2
+ * @version 1.6.3+adlytics
  * @package Interdose\DB
- * @date 2023-10-13 14:56:39
+ * @date 2024-07-30 14:25:00
  * @copyright Copyright (c) 2012-2017, Dominik Deobald / Interdose Ltd. & Co KG
  * @copyright Copyright (c) 2017-2023, Dominik Deobald
  */
@@ -61,15 +61,15 @@ class DB {
 			throw new \Exception('Database configuration missing');
 		}
 
-		$this->ConnSettings = &$_DBCONFIG[$this->connName];
+		$this->connSettings = &$_DBCONFIG[$this->connName];
 
-		if (!isset($this->ConnSettings['user'])) $this->ConnSettings['user'] = $_DBCONFIG['main']['user'];
-		if (!isset($this->ConnSettings['pass'])) $this->ConnSettings['pass'] = $_DBCONFIG['main']['pass'];
+		if (!isset($this->connSettings['user'])) $this->connSettings['user'] = $_DBCONFIG['main']['user'];
+		if (!isset($this->connSettings['pass'])) $this->connSettings['pass'] = $_DBCONFIG['main']['pass'];
 
-		list($this->connType,) = explode(':', $this->ConnSettings['dsn'], 2);
+		list($this->connType,) = explode(':', $this->connSettings['dsn'], 2);
 
 		if ($this->connType == 'http' || $this->connType == 'https') {
-			$this->connType = $this->ConnSettings['type'] ?: 'mysql';
+			$this->connType = $this->connSettings['type'] ?: 'mysql';
 		}
 	}
 
@@ -349,23 +349,23 @@ class DB {
 			if (!isset(self::$DBs[$this->connName])) {
 				self::$stats['db-connect'][$this->connName] = array('connected' => 1);
 
-				if (!isset($this->ConnSettings['persistent'])) $this->ConnSettings['persistent'] = false;
+				if (!isset($this->connSettings['persistent'])) $this->connSettings['persistent'] = false;
 
-				if (is_null($this->connPersist)) $this->connPersist = ($this->ConnSettings['persistent'] === true);
+				if (is_null($this->connPersist)) $this->connPersist = ($this->connSettings['persistent'] === true);
 
-				if (substr($this->ConnSettings['dsn'], 0, 4) == 'http') {
+				if (substr($this->connSettings['dsn'], 0, 4) == 'http') {
 					self::$DBs[$this->connName] = new DB_MySQL_Remote(
-						$this->ConnSettings['dsn'],
-						$this->ConnSettings['user'],
-						$this->ConnSettings['pass'],
+						$this->connSettings['dsn'],
+						$this->connSettings['user'],
+						$this->connSettings['pass'],
 						array()
 					);
-					$this->connType = $this->ConnSettings['type'] ?: 'mysql';
-				} elseif (substr($this->ConnSettings['dsn'], 0, 6) == 'mysql:') {
+					$this->connType = $this->connSettings['type'] ?: 'mysql';
+				} elseif (substr($this->connSettings['dsn'], 0, 6) == 'mysql:') {
 					self::$DBs[$this->connName] = new PDO(
-						$this->ConnSettings['dsn'],
-						$this->ConnSettings['user'],
-						$this->ConnSettings['pass'],
+						$this->connSettings['dsn'],
+						$this->connSettings['user'],
+						$this->connSettings['pass'],
 						array(
 							PDO::MYSQL_ATTR_USE_BUFFERED_QUERY => true,
 							PDO::ATTR_PERSISTENT => $this->connPersist,
@@ -374,7 +374,7 @@ class DB {
 					);
 
 					$this->connType = 'mysql';
-					if (preg_match("~charset=([a-u0-9]+)(;|$)~i", $this->ConnSettings['dsn'], $matches)){
+					if (preg_match("~charset=([a-u0-9]+)(;|$)~i", $this->connSettings['dsn'], $matches)){
 						// use custom character set if provided in DSN
 						self::$DBs[$this->connName]->exec('SET CHARACTER SET ' . $matches[1]);
 						self::$DBs[$this->connName]->exec('SET NAMES ' . $matches[1]);
@@ -384,11 +384,11 @@ class DB {
 						self::$DBs[$this->connName]->exec('SET NAMES utf8mb4');
 					}
 					self::$DBs[$this->connName]->exec("SET time_zone = '+0:00'");
-				} elseif (substr($this->ConnSettings['dsn'], 0, 7) == 'sqlsrv:') {
+				} elseif (substr($this->connSettings['dsn'], 0, 7) == 'sqlsrv:') {
 					self::$DBs[$this->connName] = new PDO(
-						$this->ConnSettings['dsn'],
-						$this->ConnSettings['user'],
-						$this->ConnSettings['pass'],
+						$this->connSettings['dsn'],
+						$this->connSettings['user'],
+						$this->connSettings['pass'],
 						array(
 							PDO::SQLSRV_ATTR_DIRECT_QUERY => true,
 							PDO::ATTR_PERSISTENT => $this->connPersist,
@@ -418,7 +418,12 @@ class DB {
 	}
 
 	public static function direct($host, $dbname, $user, $pass, $persist = false) {
-		$connect = 'dbconnect_' . count($GLOBALS['_CONFIG']['database']);
+		if (!is_array($GLOBALS['_CONFIG']['database'])) {
+			$connectionNo = 0;
+		} else {
+			$connectionNo = count($GLOBALS['_CONFIG']['database']);
+		}
+		$connect = 'dbconnect_' . $connectionNo;
 		self::addConnection($connect, $host, $dbname, $user, $pass);
 		return new self($connect, $persist);
 	}
